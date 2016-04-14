@@ -1,0 +1,43 @@
+version: '2'
+services:
+  data:
+    build: ./docker-data
+    environment:
+    - TZ=Asia/Taipei
+    volumes:
+    - /project/app:/data:rw
+
+  db:
+    build: ./docker-aws-dynamo-db
+    environment:
+    - TZ=Asia/Taipei
+    volumes_from:
+    - yui-data
+
+  php:
+    build: ./docker-phpfpm
+    environment:
+    - TZ=Asia/Taipei
+    volumes_from:
+    - yui-data
+    depends_on:
+    - yui-db
+    links:
+    - yui-db:db
+    privileged: true
+
+  web:
+    build: ./docker-nginx
+    environment:
+    - TZ=Asia/Taipei
+    ports:
+    - "80:80"
+    volumes_from:
+    - yui-data
+    depends_on:
+    - yui-php
+    links:
+    - yui-php:fpm
+    - yui-db:db
+    privileged: true
+  
